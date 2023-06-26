@@ -1,0 +1,38 @@
+doctype html
+html
+  head
+    title Signing in - Shortkey
+    link(rel='stylesheet', href='/style.css')
+  body
+    img#loading-spinner(src='/spinner.gif')
+    .bottom-label Signing in...
+    script(src='3rdparty/assign.js')
+    script.
+      let redirectURL = "#{clientAuthRedirectURL}"
+      function buildRedirectURL(status, token) {
+        let u = redirectURL.replace("{STATUS}", `${status}`);
+        u = u.replace("{TOKEN}", `${token}`);
+        return u;
+      }
+      async function authSuccessCallback(sessionId, accountId, accessToken) {
+        window.alert("Success");
+        let resp = await fetch("/user", {
+          method: "PUT",
+          body: JSON.stringify({
+            account_id: accountId,
+            access_token: accessToken
+          })
+        });
+        if(resp.status !== 200) {
+          window.alert("Failed");
+          return;
+        }
+        
+        window.location.href = buildRedirectURL(1, accessToken);
+      }
+
+      async function authFailedCallback(sessionId) {
+        window.alert("Failed");
+        window.location.href = buildRedirectURL(0, "");
+      }
+      initAssignFlow("f6919098-5ace-418c-9649-6b019431d494", "bee44a50f1c214b214500a3dd3c62259e737ff3f3b63b8c9688fc5ae51b668f4", authSuccessCallback, authFailedCallback)
